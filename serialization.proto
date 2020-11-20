@@ -1,0 +1,344 @@
+﻿syntax = "proto3";
+
+package serialization;
+
+message RequestWrapper {
+  enum RequestType {
+    REQ_UNKNOWN = 0;
+    REQ_ORDER_CREATE = 1;
+    REQ_ORDER_MODIFY = 2;
+    REQ_ORDER_CANCEL = 3;
+    REQ_ORDER_MASS_CANCEL = 4;
+    REQ_ORDER_MASS_STATUS = 5;
+    REQ_POSITION_MODIFY = 6;
+    REQ_POSITION_CLOSEBY = 7;
+    REQ_POSITION_MASS_STATUS = 8;
+    REQ_ACCOUNT_INFO = 9;
+  }
+
+  RequestType Type = 1;
+  bytes Data = 2;
+}
+
+message MessageWrapper {
+  enum MessageType {
+    MSG_UNKNOWN = 0;
+    MSG_ORDER_CREATED = 1;
+    MSG_ORDER_UPDATED = 2;
+    MSG_ORDER_DELETED = 3;
+    MSG_ORDER_MASS_STATUS = 4;
+    MSG_ORDER_CREATE_REJECTED = 5;
+    MSG_ORDER_MODIFY_REJECTED = 6;
+    MSG_ORDER_CANCEL_REJECTED = 7;
+    MSG_POSITION_CREATED = 8;
+    MSG_POSITION_UPDATED = 9;
+    MSG_POSITION_DELETED = 10;
+    MSG_POSITION_MASS_STATUS = 11;
+    MSG_POSITION_MODIFY_REJECTED = 12;
+    MSG_POSITION_CLOSEBY_REJECTED = 13;
+    MSG_DEAL_CREATED = 14;
+    MSG_ACCOUNT_INFO = 15;
+    MSG_ACCOUNT_BALANCE_UPDATED = 16;
+  }
+
+  MessageType Type = 1;
+  bytes Data = 2;
+}
+
+/* Orders */
+
+message Order {
+  enum OrderSide {
+    ORD_SIDE_UNKNOWN = 0;
+    ORD_SIDE_BUY = 1;
+    ORD_SIDE_SELL = 2;
+  }
+
+  enum OrderType {
+    ORD_TYPE_UNKNOWN = 0;
+    ORD_TYPE_MARKET = 1;
+    ORD_TYPE_LIMIT = 2;
+    ORD_TYPE_STOP = 3;
+    ORD_TYPE_STOP_LIMIT = 4;
+    ORD_TYPE_CLOSEBY = 5;
+  }
+
+  enum OrderTimeInForce {
+    ORD_TIME_UNKNOWN = 0;
+    ORD_TIME_GTC = 1;
+    ORD_TIME_IOC = 2;
+    ORD_TIME_FOK = 3;
+    ORD_TIME_GTD = 4;
+  }
+
+  enum OrderStatus {
+    ORD_STATUS_UNKNOWN = 0;
+    ORD_STATUS_STARTED = 1;
+    ORD_STATUS_PLACED = 2;
+    ORD_STATUS_CANCELED = 3;
+    ORD_STATUS_PARTIAL = 4;
+    ORD_STATUS_FILLED = 5;
+    ORD_STATUS_REJECTED = 6;
+    ORD_STATUS_EXPIRED = 7;
+    ORD_STATUS_PENDING_ADD = 8;
+    ORD_STATUS_PENDING_MODIFY = 9;
+    ORD_STATUS_PENDING_CANCEL = 10;
+  }
+
+  uint64 Id = 1;
+  uint64 ExternalId = 2;
+  uint64 Account = 3;
+  uint64 PositionId = 4;
+  uint64 PositionById = 5;
+  OrderSide Side = 6;
+  OrderType Type = 7;
+  OrderTimeInForce TimeInForce = 8;
+  OrderStatus Status = 9;
+  double VolumeRemain = 10;
+  double VolumeInitial = 11;
+  double Price = 12;
+  double PriceTrigger = 13;
+  double PriceSl = 14;
+  double PriceTp = 15;
+  int64 ExpirationTime = 16;
+  int64 CreateTime = 17;
+  int64 DoneTime = 18;
+  uint32 Digits = 19;
+  string Symbol = 20;
+  string Comment = 21;
+}
+
+message OrderMassStatusRequest {
+  uint64 RequestId = 1;
+  uint64 Account = 2;
+  string Symbol = 3;
+}
+
+message OrderCreateRequest {
+  uint64 ExternalId = 1;
+  uint64 Account = 2;
+  uint64 PositionId = 3;
+  double Volume = 4;
+  double Price = 5;
+  double PriceTrigger = 6;
+  double PriceSl = 7;
+  double PriceTp = 8;
+  int64 ExpirationTime = 9;
+  Order.OrderSide Side = 10;
+  Order.OrderType Type = 11;
+  Order.OrderTimeInForce TimeInForce = 12;
+  string Symbol = 13;
+  string Comment = 14;
+}
+
+message OrderModifyRequest {
+  uint64 RequestId = 1;
+  uint64 OrderId = 2;
+  uint64 Account = 3;
+  double Price = 4;
+  double PriceTrigger = 5;
+  double PriceSl = 6;
+  double PriceTp = 7;
+  int64 ExpirationTime = 8;
+  Order.OrderSide Side = 9;
+  Order.OrderType Type = 10;
+  Order.OrderTimeInForce TimeInForce = 11;
+  string Symbol = 12;
+  string Comment = 13;
+}
+
+message OrderCancelRequest {
+  uint64 RequestId = 1;
+  uint64 OrderId = 2;
+  uint64 Account = 3;
+  Order.OrderSide Side = 4;
+  Order.OrderType Type = 5;
+  string Symbol = 6;
+}
+
+message OrderMassCancelRequest {
+  uint64 RequestId = 1;
+  uint64 Account = 2;
+  string Symbol = 3;
+}
+
+message OrderMassStatusMessage {
+  uint64 RequestId = 1;
+  uint64 Account = 2;
+  repeated Order Orders = 3;
+}
+
+message OrderCreatedMessage {
+  Order Order = 1;
+}
+
+message OrderCreateRejectedMessage {
+  uint64 ExternalId = 1;
+  uint64 Account = 2;
+  uint32 Code = 3;
+}
+
+message OrderUpdatedMessage {
+  Order Order = 1;
+}
+
+message OrderModifyRejectedMessage {
+  uint64 RequestId = 1;
+  uint64 Account = 2;
+  uint32 Code = 3;
+}
+
+message OrderDeletedMessage {
+  Order Order = 1;
+}
+
+message OrderCancelRejectedMessage {
+  uint64 RequestId = 1;
+  uint64 Account = 2;
+  uint32 Code = 3;
+}
+
+/* Positions */
+
+message Position {
+  enum PositionType {
+    POS_TYPE_UNKNOWN = 0;
+    POS_TYPE_BUY = 1;
+    POS_TYPE_SELL = 2;
+  }
+
+  uint64 Id = 1;
+  uint64 Account = 2;
+  PositionType Type = 3;
+  double Volume = 4;
+  double OpenPrice = 5;
+  double PriceSl = 6;
+  double PriceTp = 7;
+  double Swap = 8;
+  int64 CreateTime = 9;
+  int64 UpdateTime = 10;
+  uint32 Digits = 11;
+  string Symbol = 12;
+  string Comment = 13;
+}
+
+message PositionMassStatusRequest {
+  uint64 RequestId = 1;
+  uint64 Account = 2;
+  string Symbol = 3;
+}
+
+message PositionModifyRequest {
+  uint64 RequestId = 1;
+  uint64 PositionId = 2;
+  uint64 Account = 3;
+  double PriceSl = 4;
+  double PriceTp = 5;
+  string Symbol = 6;
+}
+
+message PositionCloseByRequest {
+  uint64 RequestId = 1;
+  uint64 PositionId = 2;
+  uint64 PositionById = 3;
+  uint64 Account = 4;
+  string Symbol = 5;
+}
+
+message PositionMassStatusMessage {
+  uint64 RequestId = 1;
+  uint64 Account = 2;
+  repeated Position Positions = 3;
+}
+
+message PositionCreatedMessage {
+  Position Position = 1;
+}
+
+message PositionUpdatedMessage {
+  Position Position = 1;
+}
+
+message PositionModifyRejectedMessage {
+  uint64 RequestId = 1;
+  uint64 Account = 2;
+  uint32 Code = 3;
+}
+
+message PositionDeletedMessage {
+  Position Position = 1;
+}
+
+message PositionCloseByRejectedMessage {
+  uint64 RequestId = 1;
+  uint64 Account = 2;
+  uint32 Code = 3;
+}
+
+/* Deals */
+
+message Deal {
+  enum DealType {
+    DEAL_TYPE_UNKNOWN = 0;
+    DEAL_TYPE_BUY = 1;
+    DEAL_TYPE_SELL = 2;
+  }
+
+  enum DealDirection {
+    DEAL_DIRECTION_UNKNOWN = 0;
+    DEAL_DIRECTION_IN = 1;
+    DEAL_DIRECTION_OUT = 2;
+    DEAL_DIRECTION_INOUT = 3;
+    DEAL_DIRECTION_OUTBY = 4;
+  }
+
+  uint64 Id = 1;
+  uint64 Account = 2;
+  uint64 OrderId = 3;
+  uint64 PositionId = 4;
+  DealType Type = 5;
+  DealDirection Direction = 6;
+  double Volume = 7;
+  double Price = 8;
+  double Profit = 9;
+  double Swap = 10;
+  double Commission = 11;
+  double Fee = 12;
+  int64 CreateTime = 13;
+  string Symbol = 14;
+  string Comment = 15;
+}
+
+message DealCreatedMessage {
+  Deal Deal = 1;
+}
+
+/* Account */
+
+message AccountBalance {
+  double Amount = 1;
+  double Credit = 2;
+  uint32 Digits = 3;
+  string Currency = 4;
+}
+
+message AccountInfoRequest {
+  uint64 RequestId = 1;
+  uint64 Account = 2;
+}
+
+message AccountInfoMessage {
+  uint64 RequestId = 1;
+  uint64 Account = 2;
+  double StopoutLevel = 3;
+  double MarginCallLevel = 4;
+  uint32 Leverage = 5;
+  uint32 Digits = 6;
+  string Currency = 7;
+  repeated AccountBalance Balances = 8;
+}
+
+message AccountBalanceUpdatedMessage {
+  uint64 Account = 1;
+  AccountBalance Balance = 2;
+}
